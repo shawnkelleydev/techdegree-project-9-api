@@ -25,12 +25,53 @@ app.use(morgan("dev"));
 //   }
 // })();
 
-// setup a friendly greeting for the root route
+// ROUTES ---------------------------------------
+
 app.get("/", (req, res) => {
   res.json({
     message: "Welcome to the REST API project!",
   });
 });
+
+app.get("/api/users", (req, res) => {
+  res.json({ message: "user GET" });
+  res.status(200);
+});
+
+app.post("/api/users", (req, res) => {
+  res.json({ message: "user POST" });
+  res.status(201);
+  //need Location header set to "/"
+});
+
+app.get("/api/courses", (req, res) => {
+  res.json({ message: "courses GET" });
+  res.status(200);
+});
+
+app.post("/api/courses", (req, res) => {
+  res.json({ message: "courses POST" });
+  res.status(201);
+});
+
+app.get("/api/courses/:id", (req, res) => {
+  res.json({ message: "courses/:id GET" });
+  res.status(200);
+});
+
+app.put("/api/courses/:id", (req, res) => {
+  res.json({ message: "courses/:id PUT" });
+  res.status(204);
+});
+
+app.delete("/api/courses/:id", (req, res) => {
+  res.json({ message: "courses/:id DELETE" });
+  res.status(204);
+});
+
+// END ROUTES ---------------------------------------
+
+// ERRORS
 
 // send 404 if no other route matched
 app.use((req, res) => {
@@ -50,6 +91,8 @@ app.use((err, req, res, next) => {
     error: {},
   });
 });
+
+//SERVER
 
 // set our port
 app.set("port", process.env.PORT || 3000);
