@@ -38,6 +38,9 @@ module.exports = (sequelize, DataTypes) => {
       emailAddress: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: {
+          msg: "That email address is already registered.  Please provide a new email address.",
+        },
         validate: {
           notNull: { msg: "Please provide your email address." },
           notEmpty: { msg: "Please provide your email address." },
@@ -49,7 +52,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           notNull: { msg: "Please provide a password." },
-          notEmpty: { msg: "The provide a password." },
+          notEmpty: { msg: "Please provide a password." },
         },
       },
     },
