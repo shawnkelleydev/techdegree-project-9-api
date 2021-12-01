@@ -38,9 +38,9 @@ app.use(express.json());
 // (async function () {
 //   try {
 //     await sequelize.authenticate();
-//     console.log("Success!");
+//     console.log("Connection successful!");
 //   } catch (err) {
-//     console.error("Man down! ", err);
+//     console.error("Man down! DB connection problem:", err);
 //   }
 // })();
 
@@ -89,22 +89,16 @@ app.get("/", (req, res) => {
 app.get("/api/users", authenticateUser, async (req, res) => {
   try {
     const user = await req.currentUser;
-    // const users = await User.findAll({
-    //   where: {
-    //     emailAddress: req.body.emailAddress,
-    //   },
-    // });
-    // console.log(users);
-    // res.json({ users });
-    res.status(200).json({ user });
+    res.json({ user }).status(200);
   } catch (err) {
     console.error("Man down! ", err);
+    res.status(400);
   }
 });
 
 app.post("/api/users", async (req, res) => {
   try {
-    const body = await req.body;
+    const body = req.body;
     let hash;
     if (body.password !== "") {
       hash = bcrypt.hashSync(body.password, salt);
@@ -121,8 +115,8 @@ app.post("/api/users", async (req, res) => {
 
     await User.create(newUser);
     res.set("Location", "/");
+    res.send();
     res.status(201);
-    res.json({ result: "success" });
   } catch (err) {
     console.error("Man down! ", err);
     if (err.name.toLowerCase().includes("sequelize")) {
@@ -132,17 +126,33 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
-app.get("/api/courses", (req, res) => {
-  res.json({ message: "courses GET" });
-  res.status(200);
+app.get("/api/courses", async (req, res) => {
+  try {
+    const courses = await Course.findAll();
+    res.json(courses);
+    res.status(200);
+  } catch (err) {
+    console.log("Man down! ", err);
+    res.send("Man down!", err).status(400);
+  }
 });
 
-app.post("/api/courses", async (req, res) => {
+app.post("/api/courses", authenticateUser, async (req, res) => {
   try {
-    const body = await req.body;
-    await Course.create(body);
+    const body = req.body;
+    const newCourse = {
+      title: body.title,
+      description: body.description,
+      estimatedTime: body.estimatedTime,
+      materialsNeeded: body.materialsNeeded,
+      userId: req.currentUser.id,
+    };
+
+    await Course.create(newCourse);
+    const course = await Course.findOne({ where: { title: body.title } });
+    res.set("Location", `/${course.id}`);
+    res.send();
     res.status(201);
-    res.json({ result: "success" });
   } catch (err) {
     console.error("Man down! ", err);
     if (err.name.includes("Sequelize")) {
@@ -152,24 +162,84 @@ app.post("/api/courses", async (req, res) => {
   }
 });
 
+//
 app.get("/api/courses/:id", async (req, res) => {
   try {
-    const course = await Course.findOne({ where: { title: req.params.id } });
-    res.json({ course, param: req.params.id });
-    res.status(200);
+    const course = await Course.findOne({ where: { id: req.params.id } });
+    // const userId = course.userId;
+    // let user = await User.findOne({ where: { id: userId } });
+    // user = user.firstName + " " + user.lastName;
+    if (course) {
+      res.json({ course });
+      res.status(200);
+    } else {
+      res.send("Course not found.");
+      res.status(400);
+    }
   } catch (err) {
-    console.err("Man down! ", err);
+    console.error("Man down! ", err);
+    if (err.name.includes("Sequelize")) {
+      const errors = err.errors.map((err) => err.message);
+      res.status(400).json({ errors });
+    }
   }
 });
 
-app.put("/api/courses/:id", (req, res) => {
-  res.json({ message: "courses/:id PUT" });
-  res.status(204);
+//handles updates
+app.put("/api/courses/:id", authenticateUser, async (req, res) => {
+  try {
+    let courseOwner = await Course.findOne({ where: { id: req.params.id } });
+    courseOwner = courseOwner.userId;
+    const user = req.currentUser;
+    //tests for user ownership
+    if (courseOwner === user.id) {
+      //handles update
+      const data = req.body;
+      const course = await Course.update(data, {
+        where: { id: req.params.id },
+      });
+
+      if (course) {
+        res.send();
+        res.status(204);
+      } else {
+        res.send("Course not found.").status(400);
+      }
+    } else {
+      res.send("Authentication failure.  No actions taken.");
+      res.status(401);
+    }
+  } catch (err) {
+    console.error("Man down! ", err);
+    if (err.name.includes("Sequelize")) {
+      const errors = err.errors.map((err) => err.message);
+      res.status(400).json({ errors });
+    }
+  }
 });
 
-app.delete("/api/courses/:id", (req, res) => {
-  res.json({ message: "courses/:id DELETE" });
-  res.status(204);
+//handles deletions
+app.delete("/api/courses/:id", authenticateUser, async (req, res) => {
+  try {
+    let courseOwner = await Course.findOne({ where: { id: req.params.id } });
+    courseOwner = courseOwner.userId;
+    const user = req.currentUser;
+    if (user.id === courseOwner) {
+      const course = await Course.destroy({ where: { id: req.params.id } });
+      if (course) {
+        res.send();
+        res.status(204);
+      } else {
+        res.send("Course not found.").status(400);
+      }
+    } else {
+      res.send("Authentication failure. No actions taken.");
+      res.status(401);
+    }
+  } catch (err) {
+    console.error("Man down! ", err);
+    res.status(400).send("Oh no! ", err);
+  }
 });
 
 // END ROUTES ---------------------------------------
