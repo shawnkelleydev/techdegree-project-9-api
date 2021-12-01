@@ -166,9 +166,6 @@ app.post("/api/courses", authenticateUser, async (req, res) => {
 app.get("/api/courses/:id", async (req, res) => {
   try {
     const course = await Course.findOne({ where: { id: req.params.id } });
-    // const userId = course.userId;
-    // let user = await User.findOne({ where: { id: userId } });
-    // user = user.firstName + " " + user.lastName;
     if (course) {
       res.json({ course });
       res.status(200);
