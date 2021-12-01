@@ -4,6 +4,10 @@
 const express = require("express");
 const morgan = require("morgan");
 const sequelize = require("./models").sequelize;
+const User = require("./models").User;
+
+const bcrypt = require("bcryptjs");
+const salt = bcrypt.genSaltSync(10);
 
 // variable to enable global error logging
 const enableGlobalErrorLogging =
@@ -14,6 +18,17 @@ const app = express();
 
 // setup morgan which gives us http request logging
 app.use(morgan("dev"));
+
+//json!
+app.use(express.json());
+
+(async () => {
+  try {
+    await sequelize.sync();
+  } catch (err) {
+    console.error("Man down in Sync Function! ", err);
+  }
+})();
 
 // db connection tester
 // (async function () {
@@ -33,14 +48,26 @@ app.get("/", (req, res) => {
   });
 });
 
-app.get("/api/users", (req, res) => {
-  res.json({ message: "user GET" });
-  res.status(200);
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await User.findAll();
+    console.log(users);
+    res.json({ users });
+    res.status(200);
+  } catch (err) {
+    console.error("Man down! ", err);
+  }
 });
 
-app.post("/api/users", (req, res) => {
-  res.json({ message: "user POST" });
-  res.status(201);
+app.post("/api/users", async (req, res) => {
+  try {
+    const body = await req.body;
+    const hash = bcrypt.hashSync(body.password, salt);
+    res.json(hash);
+    res.status(201);
+  } catch (err) {
+    console.error("Man down! ", err);
+  }
   //need Location header set to "/"
 });
 
