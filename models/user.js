@@ -19,9 +19,6 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           notNull: { msg: "Please provide your first name." },
           notEmpty: { msg: "Please provide your first name." },
-          isAlpha: {
-            msg: "Please ensure your first name only contains letters.",
-          },
         },
       },
       lastName: {
@@ -30,9 +27,6 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           notNull: { msg: "Please provide your last name." },
           notEmpty: { msg: "Please provide your last name." },
-          isAlpha: {
-            msg: "Please ensure your last name only contains letters.",
-          },
         },
       },
       emailAddress: {

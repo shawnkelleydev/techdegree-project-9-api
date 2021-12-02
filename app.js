@@ -128,7 +128,9 @@ app.post("/api/users", async (req, res) => {
 
 app.get("/api/courses", async (req, res) => {
   try {
-    const courses = await Course.findAll();
+    const courses = await Course.findAll({
+      include: [{ model: User }],
+    });
     res.json(courses);
     res.status(200);
   } catch (err) {
