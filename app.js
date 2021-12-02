@@ -129,7 +129,7 @@ app.post("/api/users", async (req, res) => {
 app.get("/api/courses", async (req, res) => {
   try {
     const courses = await Course.findAll({
-      include: [{ model: User }],
+      include: [{ model: User, as: "user" }],
     });
     res.json(courses);
     res.status(200);
@@ -167,7 +167,12 @@ app.post("/api/courses", authenticateUser, async (req, res) => {
 //
 app.get("/api/courses/:id", async (req, res) => {
   try {
-    const course = await Course.findOne({ where: { id: req.params.id } });
+    const course = await Course.findByPk(req.params.id, {
+      include: {
+        model: User,
+        as: "user",
+      },
+    });
     if (course) {
       res.json({ course });
       res.status(200);
