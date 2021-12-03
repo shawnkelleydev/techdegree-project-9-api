@@ -35,20 +35,19 @@ app.use(express.json());
 
 // db connection tester
 
-// (async function () {
-//   try {
-//     await sequelize.authenticate();
-//     console.log("Connection successful!");
-//   } catch (err) {
-//     console.error("Man down! DB connection problem:", err);
-//   }
-// })();
+(async function () {
+  try {
+    await sequelize.authenticate();
+    console.log("Connection to database successful!");
+  } catch (err) {
+    console.error("Man down! DB connection problem:", err);
+  }
+})();
 
 //authentication
 const authenticateUser = async (req, res, next) => {
   const credentials = auth(req);
   let message;
-  console.log(credentials);
   if (credentials) {
     const user = await User.findOne({
       where: { emailAddress: credentials.name },
@@ -89,7 +88,7 @@ app.get("/", (req, res) => {
 app.get("/api/users", authenticateUser, async (req, res) => {
   try {
     const user = await req.currentUser;
-    res.json({ user }).status(200);
+    res.status(200).json({ user });
   } catch (err) {
     console.error("Man down! ", err);
     res.status(400);
@@ -112,16 +111,16 @@ app.post("/api/users", async (req, res) => {
       emailAddress: body.emailAddress,
       password: hash,
     };
-
     await User.create(newUser);
     res.set("Location", "/");
-    res.send();
-    res.status(201);
+    res.status(201).send();
   } catch (err) {
     console.error("Man down! ", err);
     if (err.name.toLowerCase().includes("sequelize")) {
       const errors = err.errors.map((err) => err.message);
       res.status(400).json({ errors });
+    } else {
+      res.status(400).send("There be problems with ye post request! Arr!");
     }
   }
 });
@@ -131,17 +130,17 @@ app.get("/api/courses", async (req, res) => {
     const courses = await Course.findAll({
       include: [{ model: User, as: "user" }],
     });
-    res.json(courses);
-    res.status(200);
+    res.status(200).json(courses);
   } catch (err) {
     console.log("Man down! ", err);
-    res.send("Man down!", err).status(400);
+    res.status(400).send("Man down!", err);
   }
 });
 
 app.post("/api/courses", authenticateUser, async (req, res) => {
   try {
     const body = req.body;
+
     const newCourse = {
       title: body.title,
       description: body.description,
@@ -152,14 +151,15 @@ app.post("/api/courses", authenticateUser, async (req, res) => {
 
     await Course.create(newCourse);
     const course = await Course.findOne({ where: { title: body.title } });
-    res.set("Location", `/${course.id}`);
-    res.send();
-    res.status(201);
+    res.set("Location", `courses/${course.id}`);
+    res.status(201).send();
   } catch (err) {
     console.error("Man down! ", err);
     if (err.name.includes("Sequelize")) {
       const errors = err.errors.map((err) => err.message);
       res.status(400).json({ errors });
+    } else {
+      res.status(400).send("There be problems with ye post request! Arr!");
     }
   }
 });
@@ -202,22 +202,21 @@ app.put("/api/courses/:id", authenticateUser, async (req, res) => {
       const course = await Course.update(data, {
         where: { id: req.params.id },
       });
-
       if (course) {
-        res.send();
-        res.status(204);
+        res.status(204).send();
       } else {
-        res.send("Course not found.").status(400);
+        res.status(400).send("Course not found.");
       }
     } else {
-      res.send("Authentication failure.  No actions taken.");
-      res.status(401);
+      res.status(401).send("Authentication failure.  No actions taken.");
     }
   } catch (err) {
     console.error("Man down! ", err);
     if (err.name.includes("Sequelize")) {
       const errors = err.errors.map((err) => err.message);
       res.status(400).json({ errors });
+    } else {
+      res.status(400).send("There be problems with ye put request! Arr!");
     }
   }
 });
@@ -231,14 +230,12 @@ app.delete("/api/courses/:id", authenticateUser, async (req, res) => {
     if (user.id === courseOwner) {
       const course = await Course.destroy({ where: { id: req.params.id } });
       if (course) {
-        res.send();
-        res.status(204);
+        res.status(204).send();
       } else {
-        res.send("Course not found.").status(400);
+        res.status(400).send("Course not found.");
       }
     } else {
-      res.send("Authentication failure. No actions taken.");
-      res.status(401);
+      res.status(401).send("Authentication failure. No actions taken.");
     }
   } catch (err) {
     console.error("Man down! ", err);
@@ -274,7 +271,7 @@ app.use((err, req, res, next) => {
 //SERVER
 
 // set our port
-app.set("port", process.env.PORT || 3000);
+app.set("port", process.env.PORT || 5000);
 
 // start listening on our port
 const server = app.listen(app.get("port"), () => {
