@@ -99,7 +99,11 @@ app.post("/api/users", async (req, res) => {
   try {
     const body = req.body;
     let hash;
-    if (body.password !== "") {
+    if (
+      body.password !== "" &&
+      body.password !== null &&
+      body.password !== undefined
+    ) {
       hash = bcrypt.hashSync(body.password, salt);
     } else {
       hash = null;
@@ -119,8 +123,6 @@ app.post("/api/users", async (req, res) => {
     if (err.name.toLowerCase().includes("sequelize")) {
       const errors = err.errors.map((err) => err.message);
       res.status(400).json({ errors });
-    } else {
-      res.status(400).send("There be problems with ye post request! Arr!");
     }
   }
 });
@@ -158,8 +160,6 @@ app.post("/api/courses", authenticateUser, async (req, res) => {
     if (err.name.includes("Sequelize")) {
       const errors = err.errors.map((err) => err.message);
       res.status(400).json({ errors });
-    } else {
-      res.status(400).send("There be problems with ye post request! Arr!");
     }
   }
 });
@@ -215,8 +215,6 @@ app.put("/api/courses/:id", authenticateUser, async (req, res) => {
     if (err.name.includes("Sequelize")) {
       const errors = err.errors.map((err) => err.message);
       res.status(400).json({ errors });
-    } else {
-      res.status(400).send("There be problems with ye put request! Arr!");
     }
   }
 });
