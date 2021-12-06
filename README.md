@@ -8,7 +8,7 @@ To test the project:
 
 2. Use Postman to submit request to the following routes:
 
-  POST api/users        creates a new user if provided the following:
+  POST /api/users        creates a new user if provided the following:
   
     {
       "firstName": "foo", (required)
@@ -17,13 +17,13 @@ To test the project:
       "password": "foobar" (required, hashed before commited to database)
      }
      
-  GET api/users         returns information for current authenticated user.
+  GET /api/users         returns information for current authenticated user.
 
-  GET api/courses       returns list of courses with owner data.
+  GET /api/courses       returns list of courses with owner data.
   
-  GET api/courses/:id   returns data for specific course.
+  GET /api/courses/:id   returns data for specific course.
   
-  POST api/courses      adds courses for an authenticated user with the following format:
+  POST /api/courses      adds courses for an authenticated user with the following format:
   
     {
       "title": "foo", (required)
@@ -32,7 +32,7 @@ To test the project:
       "materialsNeeded": "bar materials",
     }
     
-  PUT api/courses/:id   updates existing course owned by the authenticated user
+  PUT /api/courses/:id   updates existing course owned by the authenticated user
   
-  DELETE api/courses/:id  deletes course from database if owned by authenticated user
+  DELETE /api/courses/:id  deletes course from database if owned by authenticated user
   
