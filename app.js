@@ -7,7 +7,7 @@ const sequelize = require("./models").sequelize;
 const User = require("./models").User;
 const Course = require("./models").Course;
 const auth = require("basic-auth");
-
+//handle encryption
 const bcrypt = require("bcryptjs");
 const salt = bcrypt.genSaltSync(10);
 
@@ -99,6 +99,8 @@ app.post("/api/users", async (req, res) => {
   try {
     const body = req.body;
     let hash;
+
+    //encrypt password if provided
     if (
       body.password !== "" &&
       body.password !== null &&
@@ -109,24 +111,29 @@ app.post("/api/users", async (req, res) => {
       hash = null;
     }
 
+    //store encrypted password
     const newUser = {
       firstName: body.firstName,
       lastName: body.lastName,
       emailAddress: body.emailAddress,
       password: hash,
     };
+
+    //add user to database
     await User.create(newUser);
     res.set("Location", "/");
     res.status(201).send();
   } catch (err) {
     console.error("Man down! ", err);
     if (err.name.toLowerCase().includes("sequelize")) {
+      //return validation errors
       const errors = err.errors.map((err) => err.message);
       res.status(400).json({ errors });
     }
   }
 });
 
+//shows all courses in database
 app.get("/api/courses", async (req, res) => {
   try {
     const courses = await Course.findAll({
@@ -139,6 +146,7 @@ app.get("/api/courses", async (req, res) => {
   }
 });
 
+//adds courses to database
 app.post("/api/courses", authenticateUser, async (req, res) => {
   try {
     const body = req.body;
@@ -148,7 +156,7 @@ app.post("/api/courses", authenticateUser, async (req, res) => {
       description: body.description,
       estimatedTime: body.estimatedTime,
       materialsNeeded: body.materialsNeeded,
-      userId: req.currentUser.id,
+      userId: req.currentUser.id, //adds current authenticated user to course data
     };
 
     await Course.create(newCourse);
@@ -164,7 +172,7 @@ app.post("/api/courses", authenticateUser, async (req, res) => {
   }
 });
 
-//
+//gets information about a specific course
 app.get("/api/courses/:id", async (req, res) => {
   try {
     const course = await Course.findByPk(req.params.id, {
