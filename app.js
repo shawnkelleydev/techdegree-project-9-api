@@ -7,6 +7,7 @@ const sequelize = require("./models").sequelize;
 const User = require("./models").User;
 const Course = require("./models").Course;
 const auth = require("basic-auth");
+const cors = require("cors");
 //handle encryption
 const bcrypt = require("bcryptjs");
 const salt = bcrypt.genSaltSync(10);
@@ -20,6 +21,9 @@ const app = express();
 
 // setup morgan which gives us http request logging
 app.use(morgan("dev"));
+
+//cors support
+app.use(cors());
 
 //json!
 app.use(express.json());
@@ -54,8 +58,10 @@ const authenticateUser = async (req, res, next) => {
     });
 
     if (user) {
-      const authenticated = bcrypt.compare(credentials.pass, user.password);
-
+      const authenticated = await bcrypt.compare(
+        credentials.pass,
+        user.password
+      );
       if (authenticated) {
         console.log(`Authentication successful for ${user.emailAddress}`);
         req.currentUser = user;
