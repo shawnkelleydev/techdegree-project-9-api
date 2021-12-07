@@ -51,8 +51,9 @@ app.use(express.json());
 //authentication
 const authenticateUser = async (req, res, next) => {
   const credentials = auth(req);
+  console.log(credentials);
   let message;
-  if (credentials) {
+  if (credentials.name !== "" && credentials.pass !== "") {
     const user = await User.findOne({
       where: { emailAddress: credentials.name },
     });
@@ -69,7 +70,7 @@ const authenticateUser = async (req, res, next) => {
         message = `Authentication failure for ${user.emailAddress}`;
       }
     } else {
-      message = `User not found for ${user.emailAddress}`;
+      message = `User not found.`;
     }
   } else {
     message = "Auth header not found";
